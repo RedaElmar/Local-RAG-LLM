@@ -1,0 +1,209 @@
+# AI Research Assistant - Agent Configuration
+# This file configures all AI agents and their pipeline behavior
+
+# Global Configuration
+global:
+  default_model: "gemma3:4b"
+  max_context_length: 8192
+  temperature: 0.7
+  max_tokens: 2048
+  timeout_seconds: 15
+
+# Agent Definitions
+agents:
+  decomposer:
+    name: "Decomposer Agent"
+    role: "Research Question Analyzer"
+    description: "Breaks down complex research questions into structured sub-questions"
+    system_prompt: |
+      You are a research question analyzer. Break down complex research questions into clear, actionable sub-questions.
+      
+      Output format:
+      ## Research Breakdown
+      ### Main Topic: [Research focus]
+      ### Sub-Questions: [3-4 specific questions]
+      ### Research Steps: [3-4 logical steps]
+      ### Expected Outcomes: [What the research should achieve]
+    
+    parameters:
+      temperature: 0.6
+      max_tokens: 512
+      top_p: 0.9
+      timeout: 120  # 2 minutes for decomposer agent
+
+  critique:
+    name: "Critique Agent"
+    role: "Research Framework Reviewer"
+    description: "Reviews and improves the decomposed research framework"
+    system_prompt: |
+      You are a research framework reviewer. Critically evaluate and improve research breakdowns.
+      
+      Output format:
+      ## Critique and Improvements
+      ### Strengths: [What's working well]
+      ### Areas for Improvement: [Specific issues and gaps]
+      ### Enhanced Framework: [Improved version]
+      ### Quality Assessment: [Overall assessment]
+    
+    parameters:
+      temperature: 0.7
+      max_tokens: 800
+      top_p: 0.9
+      timeout: 120  # 2 minutes for critique agent
+
+  synthesis:
+    name: "Synthesis Agent"
+    role: "Information Synthesizer"
+    description: "Combines research components into coherent analysis"
+    system_prompt: |
+      You are an information synthesizer. Combine research components into a coherent analysis.
+      
+      Output format:
+      ## Research Synthesis
+      ### Executive Summary: [Key findings overview]
+      ### Key Findings: [Main discoveries and insights]
+      ### Patterns: [Connections identified]
+      ### Implications: [Practical applications]
+      ### Conclusion: [Research value summary]
+    
+    parameters:
+      temperature: 0.6
+      max_tokens: 1000
+      top_p: 0.9
+      timeout: 150  # 2.5 minutes for synthesis agent
+
+  report_formatter:
+    name: "Report Formatter"
+    role: "Professional Report Writer"
+    description: "Transforms research content into publication-ready reports"
+    system_prompt: |
+      You are a professional report formatter. Create a comprehensive, formal report from the research content.
+      
+      Requirements:
+      - Use formal, academic language
+      - Start directly with report title
+      - Structure with clear sections and headings
+      - Include executive summary, findings, conclusions, and recommendations
+      
+      Report Structure:
+      # [Research Topic] - Analysis Report
+      ## Executive Summary: [2-3 paragraph overview]
+      ## 1. Introduction: [Research context and objectives]
+      ## 2. Analysis: [Detailed examination of findings]
+      ## 3. Conclusions: [Key insights and contributions]
+      ## 4. Recommendations: [Practical applications]
+      ## References: [Proper citations]
+    
+    parameters:
+      temperature: 0.5
+      max_tokens: 1500
+      top_p: 0.9
+      timeout: 180  # 3 minutes for report formatter agent
+
+# Pipeline Configuration
+pipeline:
+  name: "Multi-Agent Research Pipeline"
+  description: "Sequential processing pipeline for comprehensive research analysis"
+  steps:
+    - name: "Query Decomposition"
+      agent: "decomposer"
+      description: "Break down research question into components"
+      estimated_time: 2
+      required: true
+      
+    - name: "Framework Critique"
+      agent: "critique"
+      description: "Review and improve research framework"
+      estimated_time: 2
+      required: true
+      depends_on: ["decomposer"]
+      
+    - name: "Information Synthesis"
+      agent: "synthesis"
+      description: "Combine components into coherent analysis"
+      estimated_time: 3
+      required: true
+      depends_on: ["critique"]
+      
+    - name: "Report Formatting"
+      agent: "report_formatter"
+      description: "Create professional publication-ready report"
+      estimated_time: 3
+      required: true
+      depends_on: ["synthesis"]
+  
+  # Pipeline behavior settings
+  behavior:
+    parallel_processing: false
+    error_handling: "stop_on_error"
+    retry_attempts: 1
+    progress_reporting: true
+    intermediate_outputs: true
+
+# Model Configuration
+models:
+  gemma3:4b:
+    name: "Gemma 3 4B (Default)"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    context_length: 8192
+    default_parameters:
+      temperature: 0.7
+      top_p: 0.9
+      max_tokens: 2048
+    priority: 1  # Highest priority
+  
+  llama3:8b:
+    name: "Llama 3 8B"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    context_length: 8192
+    default_parameters:
+      temperature: 0.7
+      top_p: 0.9
+      max_tokens: 2048
+  
+  mistral:7b:
+    name: "Mistral 7B"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    context_length: 8192
+    default_parameters:
+      temperature: 0.7
+      top_p: 0.9
+      max_tokens: 2048
+
+# Output Configuration
+output:
+  formats:
+    - markdown
+    - pdf
+    - html
+  
+  report_templates:
+    academic:
+      name: "Academic Research Report"
+      style: "formal"
+      sections: ["abstract", "introduction", "methodology", "results", "discussion", "conclusion", "references"]
+    
+    business:
+      name: "Business Analysis Report"
+      style: "professional"
+      sections: ["executive_summary", "background", "analysis", "findings", "recommendations", "appendix"]
+    
+    technical:
+      name: "Technical Documentation"
+      style: "technical"
+      sections: ["overview", "specifications", "implementation", "testing", "deployment", "maintenance"]
+  
+  default_template: "academic"
+  
+  # PDF generation settings
+  pdf:
+    page_size: "A4"
+    margins: "1in"
+    font_family: "Times New Roman"
+    font_size: "12pt"
+    line_spacing: "1.5"
+    include_toc: true
+    include_page_numbers: true

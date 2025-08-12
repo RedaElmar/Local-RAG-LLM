@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #007bff; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        input[type="file"] { margin: 10px 0; }
+        .file-info { background: #e9ecef; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Upload Function Test</h1>
+    <p>This page tests if the upload functions are working correctly after making them globally accessible.</p>
+    
+    <div class="test-section">
+        <h3>📋 Test 1: Function Availability</h3>
+        <button onclick="testFunctionAvailability()">Check Function Availability</button>
+        <div id="result1" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📁 Test 2: File Upload Modal</h3>
+        <button onclick="testModalFunctions()">Test Modal Functions</button>
+        <div id="result2" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📤 Test 3: File Upload Process</h3>
+        <input type="file" id="test-file-input" multiple accept=".txt,.pdf,.doc,.docx,.md">
+        <button onclick="testFileUpload()" id="upload-test-btn" disabled>Test File Upload</button>
+        <div id="result3" class="result"></div>
+        <div id="file-info" class="file-info" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔄 Test 4: File List Refresh</h3>
+        <button onclick="testFileListRefresh()">Test File List Refresh</button>
+        <div id="result4" class="result"></div>
+    </div>
+
+    <script>
+        // Test function availability
+        function testFunctionAvailability() {
+            const result = document.getElementById('result1');
+            const functions = [
+                'processUploadedFiles',
+                'openFileUpload', 
+                'closeFileUpload',
+                'refreshFileList',
+                'rebuildKnowledgeBase',
+                'deleteFile',
+                'createNewConversation'
+            ];
+            
+            const available = functions.filter(fn => typeof window[fn] === 'function');
+            const missing = functions.filter(fn => typeof window[fn] !== 'function');
+            
+            if (missing.length === 0) {
+                result.innerHTML = `✅ All functions are available: ${available.join(', ')}`;
+                result.className = 'result success';
+            } else {
+                result.innerHTML = `❌ Missing functions: ${missing.join(', ')}<br>✅ Available: ${available.join(', ')}`;
+                result.className = 'result error';
+            }
+        }
+        
+        // Test modal functions
+        function testModalFunctions() {
+            const result = document.getElementById('result2');
+            
+            try {
+                // Test if we can call the functions
+                if (typeof window.openFileUpload === 'function') {
+                    result.innerHTML = '✅ openFileUpload function is callable';
+                    result.className = 'result success';
+                } else {
+                    result.innerHTML = '❌ openFileUpload function is not available';
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Error calling function: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+        
+        // Test file upload
+        function testFileUpload() {
+            const result = document.getElementById('result3');
+            const fileInput = document.getElementById('test-file-input');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                result.innerHTML = '❌ No files selected';
+                result.className = 'result error';
+                return;
+            }
+            
+            result.innerHTML = `✅ ${files.length} file(s) selected. Testing upload process...`;
+            result.className = 'result success';
+            
+            // Show file info
+            const fileInfo = document.getElementById('file-info');
+            fileInfo.style.display = 'block';
+            fileInfo.innerHTML = Array.from(files).map(file => 
+                `<strong>${file.name}</strong> (${formatFileSize(file.size)})`
+            ).join('<br>');
+        }
+        
+        // Test file list refresh
+        function testFileListRefresh() {
+            const result = document.getElementById('result4');
+            
+            if (typeof window.refreshFileList === 'function') {
+                result.innerHTML = '✅ refreshFileList function is available and callable';
+                result.className = 'result success';
+            } else {
+                result.innerHTML = '❌ refreshFileList function is not available';
+                result.className = 'result error';
+            }
+        }
+        
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (!bytes) return 'Unknown size';
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+        }
+        
+        // Enable upload button when files are selected
+        document.getElementById('test-file-input').addEventListener('change', function() {
+            const uploadBtn = document.getElementById('upload-test-btn');
+            uploadBtn.disabled = this.files.length === 0;
+        });
+        
+        // Run initial tests on page load
+        window.onload = function() {
+            testFunctionAvailability();
+        };
+    </script>
+</body>
+</html>

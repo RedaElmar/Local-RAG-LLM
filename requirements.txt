@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+llama-index==0.9.48  # pin to pre‑0.10 API or update imports
+chromadb
+langchain
+requests
+pydantic
+PyYAML
