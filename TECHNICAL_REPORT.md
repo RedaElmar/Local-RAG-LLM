@@ -203,10 +203,183 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Configuration Files
-- **agents.yaml**: Multi-agent pipeline configuration
-- **pipeline_config.py**: RAG pipeline settings
-- **main.py**: FastAPI application configuration
+- **config/agents.yaml**: Comprehensive YAML configuration for multi-agent pipeline
+- **app/pipeline_config.py**: RAG pipeline settings and Python configuration loader
+- **app/main.py**: FastAPI application configuration and API endpoints
 - **requirements.txt**: Python dependency specifications
+- **scripts/manage_config.py**: Configuration management utilities
+
+## ⚙️ YAML Configuration System
+
+### Configuration Architecture
+
+The AI Research Assistant uses a sophisticated YAML-based configuration system that provides complete control over agent behavior, pipeline execution, and system parameters. The configuration is centralized in `config/agents.yaml` and loaded dynamically by the application.
+
+### Configuration Structure
+
+#### **Global Settings**
+```yaml
+global:
+  default_model: "gemma3:4b"        # Default LLM model
+  max_context_length: 8192          # Maximum context window
+  temperature: 0.7                  # Default creativity level
+  max_tokens: 2048                  # Maximum response tokens
+  timeout_seconds: 15               # Global timeout setting
+```
+
+#### **Agent Configuration**
+Each agent is defined with comprehensive settings:
+
+```yaml
+agents:
+  decomposer:
+    name: "Decomposer Agent"
+    role: "Research Question Analyzer"
+    description: "Breaks down complex research questions into structured sub-questions"
+    system_prompt: |
+      Detailed multi-line system prompt with:
+      - Role definition
+      - Output format specifications
+      - Behavioral guidelines
+      - Quality requirements
+    parameters:
+      temperature: 0.6              # Agent-specific creativity
+      max_tokens: 512               # Response length limit
+      top_p: 0.9                    # Nucleus sampling parameter
+      timeout: 120                  # Agent-specific timeout
+```
+
+#### **Pipeline Configuration**
+```yaml
+pipeline:
+  name: "Multi-Agent Research Pipeline"
+  description: "Sequential processing pipeline for comprehensive research analysis"
+  steps:
+    - name: "Query Decomposition"
+      agent: "decomposer"
+      description: "Break down research question into components"
+      estimated_time: 2
+      required: true
+      
+    - name: "Framework Critique"
+      agent: "critique"
+      depends_on: ["decomposer"]    # Dependency chain
+      required: true
+  
+  behavior:
+    parallel_processing: false      # Sequential vs parallel execution
+    error_handling: "stop_on_error" # Error handling strategy
+    retry_attempts: 1               # Automatic retry count
+    progress_reporting: true        # Enable progress updates
+```
+
+#### **Model Management**
+```yaml
+models:
+  gemma3:4b:
+    name: "Gemma 3 4B (Default)"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    context_length: 8192
+    default_parameters:
+      temperature: 0.7
+      top_p: 0.9
+      max_tokens: 2048
+    priority: 1                     # Model selection priority
+```
+
+#### **Output Customization**
+```yaml
+output:
+  formats: ["markdown", "pdf", "html"]
+  report_templates:
+    academic:
+      name: "Academic Research Report"
+      style: "formal"
+      sections: ["abstract", "introduction", "methodology", "results", "discussion", "conclusion", "references"]
+    business:
+      name: "Business Analysis Report"
+      style: "professional"
+      sections: ["executive_summary", "background", "analysis", "findings", "recommendations", "appendix"]
+  
+  pdf:
+    page_size: "A4"
+    margins: "1in"
+    font_family: "Times New Roman"
+    font_size: "12pt"
+    line_spacing: "1.5"
+    include_toc: true
+    include_page_numbers: true
+```
+
+### Configuration Management
+
+#### **Dynamic Loading**
+- Configuration is loaded at application startup
+- Hot-reload capability for development
+- Validation and error checking
+- Fallback to default values
+
+#### **Configuration Scripts**
+```bash
+# Validate configuration syntax and semantics
+python scripts/manage_config.py validate
+
+# Display current configuration summary
+python scripts/manage_config.py summary
+
+# Reload configuration without restart
+python scripts/manage_config.py reload
+
+# Generate sample configuration file
+python scripts/manage_config.py sample
+```
+
+#### **Configuration Validation**
+- **Schema Validation**: YAML structure validation
+- **Parameter Validation**: Value range and type checking
+- **Dependency Validation**: Pipeline step dependency verification
+- **Model Availability**: LLM model accessibility verification
+
+### Advanced Configuration Features
+
+#### **Agent Customization**
+- **System Prompt Engineering**: Fine-tuned prompts for specific domains
+- **Parameter Optimization**: Model parameters optimized for each agent role
+- **Output Format Control**: Structured output templates for consistency
+- **Timeout Management**: Individual timeout settings for different complexity levels
+
+#### **Pipeline Orchestration**
+- **Dependency Management**: Complex inter-agent dependencies
+- **Error Recovery**: Configurable error handling and retry strategies
+- **Progress Tracking**: Real-time pipeline execution monitoring
+- **Result Aggregation**: Systematic compilation of agent outputs
+
+#### **Model Integration**
+- **Multi-Model Support**: Support for various Ollama models (Gemma, Llama, Mistral)
+- **Model Fallbacks**: Automatic fallback to backup models
+- **Provider Abstraction**: Easy integration of new LLM providers
+- **Performance Optimization**: Model-specific parameter tuning
+
+### Configuration Best Practices
+
+#### **Development Workflow**
+1. **Start with Defaults**: Use provided configuration as baseline
+2. **Incremental Changes**: Make small, testable configuration changes
+3. **Validation**: Always validate configuration before deployment
+4. **Documentation**: Document custom configuration rationale
+
+#### **Production Deployment**
+- **Environment-Specific Configs**: Separate configs for dev/staging/production
+- **Security Considerations**: Secure handling of API keys and sensitive parameters
+- **Performance Tuning**: Optimize timeouts and resource allocation
+- **Monitoring**: Track configuration effectiveness through metrics
+
+#### **Troubleshooting**
+- **Configuration Validation**: Use built-in validation tools
+- **Log Analysis**: Monitor configuration-related error messages
+- **Parameter Tuning**: Systematic approach to parameter optimization
+- **Fallback Testing**: Verify fallback mechanisms work correctly
 
 ## 🔍 Monitoring & Debugging
 

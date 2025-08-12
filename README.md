@@ -165,32 +165,129 @@ python scripts/manage_config.py reload
 python scripts/manage_config.py sample
 ```
 
-### **Example Configuration**
+### **Complete Configuration Example**
+
+The system uses a comprehensive YAML configuration file located at `config/agents.yaml`. Here's the complete configuration structure:
+
 ```yaml
-# Global settings
+# Global Configuration
 global:
   default_model: "gemma3:4b"
+  max_context_length: 8192
   temperature: 0.7
   max_tokens: 2048
+  timeout_seconds: 15
 
-# Agent definitions
+# Agent Definitions
 agents:
   decomposer:
     name: "Decomposer Agent"
     role: "Research Question Analyzer"
-    system_prompt: "You are a research question analyzer..."
+    description: "Breaks down complex research questions into structured sub-questions"
+    system_prompt: |
+      You are a research question analyzer. Break down complex research questions into clear, actionable sub-questions.
+      
+      Output format:
+      ## Research Breakdown
+      ### Main Topic: [Research focus]
+      ### Sub-Questions: [3-4 specific questions]
+      ### Research Steps: [3-4 logical steps]
+      ### Expected Outcomes: [What the research should achieve]
     parameters:
       temperature: 0.6
-      max_tokens: 1024
+      max_tokens: 512
+      top_p: 0.9
+      timeout: 120
 
-# Pipeline configuration
+  critique:
+    name: "Critique Agent"
+    role: "Research Framework Reviewer"
+    description: "Reviews and improves the decomposed research framework"
+    system_prompt: |
+      You are a research framework reviewer. Critically evaluate and improve research breakdowns.
+      
+      Output format:
+      ## Critique and Improvements
+      ### Strengths: [What's working well]
+      ### Areas for Improvement: [Specific issues and gaps]
+      ### Enhanced Framework: [Improved version]
+      ### Quality Assessment: [Overall assessment]
+    parameters:
+      temperature: 0.7
+      max_tokens: 800
+      timeout: 120
+
+# Pipeline Configuration
 pipeline:
+  name: "Multi-Agent Research Pipeline"
+  description: "Sequential processing pipeline for comprehensive research analysis"
   steps:
     - name: "Query Decomposition"
       agent: "decomposer"
+      description: "Break down research question into components"
       estimated_time: 2
       required: true
+      
+    - name: "Framework Critique"
+      agent: "critique"
+      description: "Review and improve research framework"
+      estimated_time: 2
+      required: true
+      depends_on: ["decomposer"]
+
+# Model Configuration
+models:
+  gemma3:4b:
+    name: "Gemma 3 4B (Default)"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    context_length: 8192
+    default_parameters:
+      temperature: 0.7
+      top_p: 0.9
+      max_tokens: 2048
+    priority: 1
+
+# Output Configuration
+output:
+  formats: ["markdown", "pdf", "html"]
+  report_templates:
+    academic:
+      name: "Academic Research Report"
+      style: "formal"
+      sections: ["abstract", "introduction", "methodology", "results", "discussion", "conclusion", "references"]
+    business:
+      name: "Business Analysis Report"
+      style: "professional"
+      sections: ["executive_summary", "background", "analysis", "findings", "recommendations", "appendix"]
+  default_template: "academic"
 ```
+
+### **Key Configuration Features**
+
+#### **Agent Configuration**
+- **System Prompts**: Detailed instructions for each agent's behavior
+- **Parameters**: Fine-tuned settings for temperature, tokens, and timeouts
+- **Roles & Descriptions**: Clear definition of each agent's purpose
+- **Output Formats**: Structured output templates for consistency
+
+#### **Pipeline Management**
+- **Sequential Processing**: Ordered execution with dependencies
+- **Error Handling**: Configurable error recovery strategies
+- **Progress Tracking**: Real-time pipeline status monitoring
+- **Intermediate Outputs**: Access to results from each pipeline step
+
+#### **Model Support**
+- **Multiple Models**: Support for Gemma, Llama, Mistral, and other Ollama models
+- **Model Parameters**: Customizable generation parameters per model
+- **Fallback Support**: Automatic fallback to backup models
+- **Provider Configuration**: Flexible LLM provider integration
+
+#### **Report Customization**
+- **Multiple Templates**: Academic, business, and technical report styles
+- **Output Formats**: Markdown, PDF, and HTML export options
+- **Styling Options**: Customizable fonts, margins, and page layouts
+- **Section Configuration**: Flexible report structure definition
 
 ## �� Project Structure
 
