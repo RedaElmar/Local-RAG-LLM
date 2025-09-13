@@ -29,7 +29,7 @@ agents:
       temperature: 0.6
       max_tokens: 512
       top_p: 0.9
-      timeout: 120  # 2 minutes for decomposer agent
+      timeout: 60  # 1 minute for decomposer agent
 
   critique:
     name: "Critique Agent"
@@ -47,9 +47,9 @@ agents:
     
     parameters:
       temperature: 0.7
-      max_tokens: 800
+      max_tokens: 600
       top_p: 0.9
-      timeout: 120  # 2 minutes for critique agent
+      timeout: 60  # 1 minute for critique agent
 
   synthesis:
     name: "Synthesis Agent"
@@ -68,9 +68,9 @@ agents:
     
     parameters:
       temperature: 0.6
-      max_tokens: 1000
+      max_tokens: 800
       top_p: 0.9
-      timeout: 150  # 2.5 minutes for synthesis agent
+      timeout: 90  # 1.5 minutes for synthesis agent
 
   report_formatter:
     name: "Report Formatter"
@@ -96,9 +96,9 @@ agents:
     
     parameters:
       temperature: 0.5
-      max_tokens: 1500
+      max_tokens: 1000
       top_p: 0.9
-      timeout: 180  # 3 minutes for report formatter agent
+      timeout: 90  # 1.5 minutes for report formatter agent
 
 # Pipeline Configuration
 pipeline:

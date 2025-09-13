@@ -117,24 +117,27 @@ def run_pipeline(query, model="gemma3:4b"):  # Default to Gemma 3 4B
                 # Create prompt based on step configuration
                 print(f"📝 [DEBUG] Creating prompt for {agent_name}...")
                 if agent_name == "decomposer":
-                    # Use truncated context for decomposer to avoid timeout
-                    truncated_context = context[:2000] + "..." if len(context) > 2000 else context
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### User Query\n{query}\n\n### Relevant Context\n{truncated_context}\n\nPlease break down this research question into structured components."
+                    # Use minimal context for decomposer to avoid timeout
+                    truncated_context = context[:1000] + "..." if len(context) > 1000 else context
+                    prompt = f"## {step_name}\n\n### User Query\n{query}\n\n### Context\n{truncated_context}\n\nPlease break down this research question into structured components following the format in your instructions."
                     output_key = "breakdown"
                 elif agent_name == "critique":
-                    # Use summary context for critique to reduce prompt size
-                    context_summary = context[:1500] + "..." if len(context) > 1500 else context
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Context Summary\n{context_summary}\n\nPlease review and improve this research framework."
+                    # Use minimal context for critique, focus on breakdown analysis
+                    breakdown_text = str(ctx.get('breakdown', 'N/A'))[:800] + "..." if len(str(ctx.get('breakdown', 'N/A'))) > 800 else str(ctx.get('breakdown', 'N/A'))
+                    prompt = f"## {step_name}\n\n### Breakdown to Review\n{breakdown_text}\n\nPlease review and improve this research framework following your instructions."
                     output_key = "critique"
                 elif agent_name == "synthesis":
-                    # Use even shorter context for synthesis as it has previous agent outputs
-                    context_summary = context[:1000] + "..." if len(context) > 1000 else context
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Critique\n{ctx.get('critique', 'N/A')}\n\n### Context Summary\n{context_summary}\n\nPlease synthesize this information into a comprehensive analysis."
+                    # Use only previous agent outputs for synthesis, minimal context
+                    breakdown_text = str(ctx.get('breakdown', 'N/A'))[:400] + "..." if len(str(ctx.get('breakdown', 'N/A'))) > 400 else str(ctx.get('breakdown', 'N/A'))
+                    critique_text = str(ctx.get('critique', 'N/A'))[:400] + "..." if len(str(ctx.get('critique', 'N/A'))) > 400 else str(ctx.get('critique', 'N/A'))
+                    prompt = f"## {step_name}\n\n### Query\n{query}\n\n### Breakdown\n{breakdown_text}\n\n### Critique\n{critique_text}\n\nPlease synthesize this information into a comprehensive analysis."
                     output_key = "synthesis"
                 elif agent_name == "report_formatter":
-                    # Use concise sources for final report
-                    concise_sources = sources_md[:500] + "..." if len(sources_md) > 500 else sources_md
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n**Topic:** {query}\n\n**Breakdown:** {ctx.get('breakdown', 'N/A')}\n\n**Critique:** {ctx.get('critique', 'N/A')}\n\n**Synthesis:** {ctx.get('synthesis', 'N/A')}\n\n**Sources:** {concise_sources}\n\nPlease create a comprehensive, professional report."
+                    # Use truncated outputs for final report to avoid timeout
+                    breakdown_short = str(ctx.get('breakdown', 'N/A'))[:300] + "..." if len(str(ctx.get('breakdown', 'N/A'))) > 300 else str(ctx.get('breakdown', 'N/A'))
+                    critique_short = str(ctx.get('critique', 'N/A'))[:300] + "..." if len(str(ctx.get('critique', 'N/A'))) > 300 else str(ctx.get('critique', 'N/A'))
+                    synthesis_short = str(ctx.get('synthesis', 'N/A'))[:400] + "..." if len(str(ctx.get('synthesis', 'N/A'))) > 400 else str(ctx.get('synthesis', 'N/A'))
+                    prompt = f"## {step_name}\n\n**Topic:** {query}\n\n**Analysis:** {synthesis_short}\n\n**Framework:** {breakdown_short}\n\n**Review:** {critique_short}\n\nPlease create a comprehensive, professional report."
                     output_key = "final_report"
                 else:
                     prompt = f"## {step_name}\n\n{agent_config['description']}\n\nPlease process the following information:\n{context}"
