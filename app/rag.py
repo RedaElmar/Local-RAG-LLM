@@ -79,9 +79,9 @@ def run_pipeline(query, model="gemma3:4b"):  # Default to Gemma 3 4B
         pipeline_steps = config.get_pipeline_steps()
         print(f"✅ [DEBUG] Loaded {len(pipeline_steps)} pipeline steps")
         
-        # Retrieve relevant context
+        # Retrieve relevant context (reduced from 8 to 4 for performance)
         print("🔍 [DEBUG] Retrieving relevant context...")
-        passages = retrieve(query, k=8)
+        passages = retrieve(query, k=4)
         context = "\n".join(p.node.text for p in passages)
         sources = [p.metadata.get("source") for p in passages]
         sources_md = sources_to_markdown(sources)
@@ -117,16 +117,24 @@ def run_pipeline(query, model="gemma3:4b"):  # Default to Gemma 3 4B
                 # Create prompt based on step configuration
                 print(f"📝 [DEBUG] Creating prompt for {agent_name}...")
                 if agent_name == "decomposer":
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### User Query\n{query}\n\n### Context\n{context}\n\nPlease break down this research question into structured components."
+                    # Use truncated context for decomposer to avoid timeout
+                    truncated_context = context[:2000] + "..." if len(context) > 2000 else context
+                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### User Query\n{query}\n\n### Relevant Context\n{truncated_context}\n\nPlease break down this research question into structured components."
                     output_key = "breakdown"
                 elif agent_name == "critique":
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Context\n{context}\n\nPlease review and improve this research framework."
+                    # Use summary context for critique to reduce prompt size
+                    context_summary = context[:1500] + "..." if len(context) > 1500 else context
+                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Context Summary\n{context_summary}\n\nPlease review and improve this research framework."
                     output_key = "critique"
                 elif agent_name == "synthesis":
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Critique\n{ctx.get('critique', 'N/A')}\n\n### Context\n{context}\n\nPlease synthesize this information into a comprehensive analysis."
+                    # Use even shorter context for synthesis as it has previous agent outputs
+                    context_summary = context[:1000] + "..." if len(context) > 1000 else context
+                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n### Breakdown\n{ctx.get('breakdown', 'N/A')}\n\n### Critique\n{ctx.get('critique', 'N/A')}\n\n### Context Summary\n{context_summary}\n\nPlease synthesize this information into a comprehensive analysis."
                     output_key = "synthesis"
                 elif agent_name == "report_formatter":
-                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n**Topic:** {query}\n\n**Breakdown:** {ctx.get('breakdown', 'N/A')}\n\n**Critique:** {ctx.get('critique', 'N/A')}\n\n**Synthesis:** {ctx.get('synthesis', 'N/A')}\n\n**Sources:** {sources_md}\n\nPlease create a comprehensive, professional report."
+                    # Use concise sources for final report
+                    concise_sources = sources_md[:500] + "..." if len(sources_md) > 500 else sources_md
+                    prompt = f"## {step_name}\n\n{agent_config['description']}\n\n**Topic:** {query}\n\n**Breakdown:** {ctx.get('breakdown', 'N/A')}\n\n**Critique:** {ctx.get('critique', 'N/A')}\n\n**Synthesis:** {ctx.get('synthesis', 'N/A')}\n\n**Sources:** {concise_sources}\n\nPlease create a comprehensive, professional report."
                     output_key = "final_report"
                 else:
                     prompt = f"## {step_name}\n\n{agent_config['description']}\n\nPlease process the following information:\n{context}"
