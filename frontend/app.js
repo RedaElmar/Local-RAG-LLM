@@ -758,25 +758,25 @@ try {
         modelSelect.innerHTML = '';
         let defaultModelFound = false;
         
-        // First, add gemma34b as the default if it exists
+        // First, add gemma3:4b as the default if it exists
         data.models.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.name;
           opt.textContent = m.name;
-          if (m.name === 'gemma34b') {
+          if (m.name === 'gemma3:4b') {
             opt.selected = true;
             defaultModelFound = true;
-            console.log('✅ Found gemma34b, setting as default');
+            console.log('✅ Found gemma3:4b, setting as default');
           }
           modelSelect.appendChild(opt);
         });
         
-        // If gemma34b wasn't found, add it as the first option and select it
+        // If gemma3:4b wasn't found, add it as the first option and select it
         if (!defaultModelFound) {
-          console.log('⚠️ gemma34b not found in Ollama models, adding as default option');
+          console.log('⚠️ gemma3:4b not found in Ollama models, adding as default option');
           const defaultOpt = document.createElement('option');
-          defaultOpt.value = 'gemma34b';
-          defaultOpt.textContent = 'Gemma 34B (Default)';
+          defaultOpt.value = 'gemma3:4b';
+          defaultOpt.textContent = 'Gemma 3 4B (Default)';
           defaultOpt.selected = true;
           modelSelect.insertBefore(defaultOpt, modelSelect.firstChild);
         }
@@ -785,7 +785,7 @@ try {
       }
     } catch {
       // fallback: add default
-      modelSelect.innerHTML = '<option value="gemma34b" selected>Gemma 34B (Default)</option>';
+      modelSelect.innerHTML = '<option value="gemma3:4b" selected>Gemma 3 4B (Default)</option>';
     }
   }
 
@@ -800,19 +800,19 @@ try {
   
   // Also set a fallback default after a short delay to ensure it's set
   setTimeout(() => {
-    if (modelSelect.value !== 'gemma34b') {
-      console.log('🔄 Setting fallback default model to gemma34b');
-      modelSelect.value = 'gemma34b';
+    if (modelSelect.value !== 'gemma3:4b') {
+      console.log('🔄 Setting fallback default model to gemma3:4b');
+      modelSelect.value = 'gemma3:4b';
     }
   }, 1000);
   
   // Force refresh models and set default after page load
   window.addEventListener('load', () => {
     setTimeout(() => {
-      console.log('🔄 Page loaded, ensuring gemma34b is selected');
-      if (modelSelect.value !== 'gemma34b') {
-        modelSelect.value = 'gemma34b';
-        console.log('✅ Forced gemma34b selection');
+      console.log('🔄 Page loaded, ensuring gemma3:4b is selected');
+      if (modelSelect.value !== 'gemma3:4b') {
+        modelSelect.value = 'gemma3:4b';
+        console.log('✅ Forced gemma3:4b selection');
       }
     }, 500);
   });
